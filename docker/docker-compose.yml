@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  zorix-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: zorix-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - ZORIX_WORKSPACE_ROOT=/app/workspace
+      - ZORIX_LOG_LEVEL=INFO
+      - ZORIX_LOG_FORMAT=json
+      - ZORIX_BEDROCK_REGION=us-east-1
+      - ZORIX_VECTOR_INDEX_PATH=/app/data/vector_index
+      - ZORIX_MEMORY_DB_PATH=/app/data/memory.db
+      - ZORIX_AUDIT_LOG_FILE=/app/logs/audit.log
+      - ZORIX_LOG_FILE=/app/logs/zorix-agent.log
+    volumes:
+      - zorix_data:/app/data
+      - zorix_logs:/app/logs
+      - zorix_workspace:/app/workspace
+      # Mount AWS credentials if available
+      - ~/.aws:/home/zorix/.aws:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - zorix-network
+
+volumes:
+  zorix_data:
+    driver: local
+  zorix_logs:
+    driver: local
+  zorix_workspace:
+    driver: local
+
+networks:
+  zorix-network:
+    driver: bridge

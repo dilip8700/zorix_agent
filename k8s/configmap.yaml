@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zorix-agent-config
+  namespace: zorix-agent
+data:
+  ZORIX_LOG_LEVEL: "INFO"
+  ZORIX_LOG_FORMAT: "json"
+  ZORIX_BEDROCK_REGION: "us-east-1"
+  ZORIX_WORKSPACE_ROOT: "/app/workspace"
+  ZORIX_VECTOR_INDEX_PATH: "/app/data/vector_index"
+  ZORIX_MEMORY_DB_PATH: "/app/data/memory.db"
+  ZORIX_AUDIT_LOG_FILE: "/app/logs/audit.log"
+  ZORIX_LOG_FILE: "/app/logs/zorix-agent.log"
+  ZORIX_ENABLE_TRACING: "false"
+  ZORIX_ENABLE_METRICS: "true"

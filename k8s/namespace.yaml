@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zorix-agent
+  labels:
+    name: zorix-agent
+    app: zorix-agent

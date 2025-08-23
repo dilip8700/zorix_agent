@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zorix-agent
+  namespace: zorix-agent
+  labels:
+    app: zorix-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zorix-agent
+  template:
+    metadata:
+      labels:
+        app: zorix-agent
+    spec:
+      containers:
+      - name: zorix-agent
+        image: zorix-agent:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: zorix-agent-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: zorix-agent-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        envFrom:
+        - configMapRef:
+            name: zorix-agent-config
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: workspace-volume
+          mountPath: /app/workspace
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/system/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/system/health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: zorix-agent-data-pvc
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: zorix-agent-logs-pvc
+      - name: workspace-volume
+        persistentVolumeClaim:
+          claimName: zorix-agent-workspace-pvc
+      securityContext:
+        fsGroup: 1000

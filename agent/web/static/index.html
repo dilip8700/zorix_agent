@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zorix Agent - Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-healthy { background: #27ae60; }
+        .status-degraded { background: #f39c12; }
+        .status-error { background: #e74c3c; }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .task-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending { background: #f39c12; color: white; }
+        .status-running { background: #3498db; color: white; }
+        .status-completed { background: #27ae60; color: white; }
+        .status-failed { background: #e74c3c; color: white; }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Zorix Agent</h1>
+    </div>
+    
+    <div class="container">
+        <div class="dashboard">
+            <!-- System Status -->
+            <div class="card">
+                <h2>System Status</h2>
+                <div id="system-status" class="loading">Loading...</div>
+            </div>
+            
+            <!-- Quick Task -->
+            <div class="card">
+                <h2>Execute Task</h2>
+                <div class="input-group">
+                    <label for="task-instruction">Task Instruction:</label>
+                    <textarea id="task-instruction" placeholder="Enter your task instruction here..."></textarea>
+                </div>
+                <button class="btn" onclick="executeTask()">Execute Task</button>
+                <button class="btn btn-secondary" onclick="previewTask()">Preview</button>
+            </div>
+            
+            <!-- Recent Tasks -->
+            <div class="card">
+                <h2>Recent Tasks</h2>
+                <div id="recent-tasks" class="task-list loading">Loading...</div>
+            </div>
+            
+            <!-- System Metrics -->
+            <div class="card">
+                <h2>System Metrics</h2>
+                <div id="system-metrics" class="metrics loading">Loading...</div>
+            </div>
+        </div>
+        
+        <!-- Chat Interface -->
+        <div class="card">
+            <h2>Chat with Agent</h2>
+            <div id="chat-messages" style="height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; background: #fafafa;"></div>
+            <div class="input-group">
+                <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeypress(event)">
+            </div>
+            <button class="btn" onclick="sendChatMessage()">Send Message</button>
+        </div>
+    </div>
+    
+    <script>
+        let currentSessionId = null;
+        
+        // Initialize the interface
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSystemStatus();
+            loadRecentTasks();
+            loadSystemMetrics();
+            
+            // Refresh data every 30 seconds
+            setInterval(() => {
+                loadSystemStatus();
+                loadRecentTasks();
+                loadSystemMetrics();
+            }, 30000);
+        });
+        
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/v1/system/status');
+                const status = await response.json();
+                
+                const statusHtml = `
+                    <div style="margin-bottom: 1rem;">
+                        <span class="status-indicator status-${status.bedrock_status === 'healthy' ? 'healthy' : 'error'}"></span>
+                        Bedrock: ${status.bedrock_status}
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <span class="status-indicator status-${status.vector_index_status === 'healthy' ? 'healthy' : 'error'}"></span>
+                        Vector Index: ${status.vector_index_status}
+                    </div>
+                    <div>
+                        <strong>Uptime:</strong> ${Math.floor(status.uptime_seconds / 3600)}h ${Math.floor((status.uptime_seconds % 3600) / 60)}m
+                    </div>
+                `;
+                
+                document.getElementById('system-status').innerHTML = statusHtml;
+            } catch (error) {
+                document.getElementById('system-status').innerHTML = '<div class="error">Failed to load system status</div>';
+            }
+        }
+        
+        async function loadRecentTasks() {
+            try {
+                const response = await fetch('/api/v1/tasks/?limit=5');
+                const tasks = await response.json();
+                
+                if (tasks.length === 0) {
+                    document.getElementById('recent-tasks').innerHTML = '<div style="text-align: center; color: #7f8c8d;">No recent tasks</div>';
+                    return;
+                }
+                
+                const tasksHtml = tasks.map(task => `
+                    <div class="task-item">
+                        <div>
+                            <div style="font-weight: 500;">${task.instruction.substring(0, 50)}${task.instruction.length > 50 ? '...' : ''}</div>
+                            <div style="font-size: 0.8rem; color: #7f8c8d;">${new Date(task.created_at).toLocaleString()}</div>
+                        </div>
+                        <span class="task-status status-${task.status.toLowerCase()}">${task.status}</span>
+                    </div>
+                `).join('');
+                
+                document.getElementById('recent-tasks').innerHTML = tasksHtml;
+            } catch (error) {
+                document.getElementById('recent-tasks').innerHTML = '<div class="error">Failed to load tasks</div>';
+            }
+        }
+        
+        async function loadSystemMetrics() {
+            try {
+                const response = await fetch('/api/v1/system/metrics');
+                const metrics = await response.json();
+                
+                const metricsHtml = `
+                    <div class="metric">
+                        <div class="metric-value">${metrics.application.active_tasks}</div>
+                        <div class="metric-label">Active Tasks</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${metrics.application.completed_tasks}</div>
+                        <div class="metric-label">Completed</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${Math.round(metrics.process.memory_mb)}MB</div>
+                        <div class="metric-label">Memory</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${Math.round(metrics.system.cpu_percent)}%</div>
+                        <div class="metric-label">CPU</div>
+                    </div>
+                `;
+                
+                document.getElementById('system-metrics').innerHTML = metricsHtml;
+            } catch (error) {
+                document.getElementById('system-metrics').innerHTML = '<div class="error">Failed to load metrics</div>';
+            }
+        }
+        
+        async function executeTask() {
+            const instruction = document.getElementById('task-instruction').value.trim();
+            if (!instruction) {
+                alert('Please enter a task instruction');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/tasks/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        instruction: instruction,
+                        generate_preview: true,
+                        estimate_cost: true
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.requires_approval) {
+                    alert(`Task created but requires approval: ${result.approval_message}`);
+                } else {
+                    alert(`Task started successfully! Task ID: ${result.task_id}`);
+                }
+                
+                // Clear the input and refresh tasks
+                document.getElementById('task-instruction').value = '';
+                loadRecentTasks();
+                
+            } catch (error) {
+                alert('Failed to execute task: ' + error.message);
+            }
+        }
+        
+        async function previewTask() {
+            const instruction = document.getElementById('task-instruction').value.trim();
+            if (!instruction) {
+                alert('Please enter a task instruction');
+                return;
+            }
+            
+            alert('Preview functionality would show task details before execution');
+        }
+        
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addChatMessage('user', message);
+            input.value = '';
+            
+            // Use streaming for better user experience
+            await streamChatMessage(message);
+        }
+        
+        async function streamChatMessage(message) {
+            try {
+                const response = await fetch('/api/v1/chat/stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        session_id: currentSessionId,
+                        stream: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let assistantMessage = '';
+                let messageDiv = null;
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('event:')) {
+                            // Handle different event types
+                            const eventType = line.substring(6).trim();
+                            continue;
+                        }
+                        
+                        if (line.startsWith('data:')) {
+                            try {
+                                const data = JSON.parse(line.substring(5).trim());
+                                
+                                if (data.session_id) {
+                                    currentSessionId = data.session_id;
+                                }
+                                
+                                // Handle message deltas
+                                if (data.delta) {
+                                    assistantMessage += data.delta;
+                                    
+                                    // Create or update message div
+                                    if (!messageDiv) {
+                                        messageDiv = addChatMessage('assistant', '');
+                                    }
+                                    updateChatMessage(messageDiv, assistantMessage);
+                                }
+                                
+                                // Handle tool calls
+                                if (data.tool_name) {
+                                    const toolMessage = `🔧 ${data.tool_name}: ${data.step || data.result || 'Working...'}`;
+                                    addChatMessage('system', toolMessage);
+                                }
+                                
+                                // Handle errors
+                                if (data.error) {
+                                    addChatMessage('system', `Error: ${data.error}`);
+                                }
+                                
+                            } catch (e) {
+                                // Ignore JSON parse errors for non-JSON data
+                                if (line.includes('[DONE]')) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Streaming error:', error);
+                addChatMessage('system', 'Error: Failed to stream message');
+            }
+        }
+        
+        function addChatMessage(role, content) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '1rem';
+            messageDiv.innerHTML = `
+                <div style="font-weight: bold; color: ${role === 'user' ? '#3498db' : role === 'assistant' ? '#27ae60' : '#e74c3c'};">
+                    ${role.charAt(0).toUpperCase() + role.slice(1)}:
+                </div>
+                <div class="message-content" style="margin-top: 0.25rem;">${content}</div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            return messageDiv;
+        }
+        
+        function updateChatMessage(messageDiv, content) {
+            const contentDiv = messageDiv.querySelector('.message-content');
+            if (contentDiv) {
+                contentDiv.textContent = content;
+                // Auto-scroll to bottom
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+        
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+    </script>
+</body>
+</html>
