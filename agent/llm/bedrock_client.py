@@ -117,7 +117,7 @@ class BedrockClient:
             elif error_code in ['ValidationException', 'AccessDeniedException']:
                 raise BedrockError(f"Bedrock API error ({error_code}): {error_message}") from e
             else:
-                raise BedrockServiceError(f"Bedrock service error ({error_code}): {error_message}") from e
+                raise BedrockError(f"Bedrock service error ({error_code}): {error_message}") from e
         
         except BotoCoreError as e:
             raise BedrockError(f"Boto3 error: {e}") from e
@@ -318,7 +318,7 @@ class BedrockClient:
             raise BedrockError(f"Embedding generation failed: {e}") from e
     
     def _format_messages(self, messages: List[Message]) -> List[Dict[str, Any]]:
-        """Format messages for Bedrock API."""
+        """Format messages for Bedrock API using Anthropic format."""
         formatted = []
         
         for message in messages:
@@ -326,9 +326,15 @@ class BedrockClient:
             if message.role == "system":
                 continue
             
+            # Format message using Anthropic format
             formatted_message = {
                 "role": message.role,
-                "content": message.content
+                "content": [
+                    {
+                        "type": "text",
+                        "text": message.content
+                    }
+                ]
             }
             
             formatted.append(formatted_message)

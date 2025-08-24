@@ -6,31 +6,31 @@ class LLMError(Exception):
     pass
 
 
-class BedrockError(LLMError):
-    """Base exception for AWS Bedrock operations."""
+class BedrockError(Exception):
+    """Base exception for Bedrock operations."""
     pass
 
 
 class BedrockRateLimitError(BedrockError):
-    """Exception for Bedrock rate limit exceeded."""
+    """Exception for rate limit exceeded."""
     pass
 
 
 class BedrockTimeoutError(BedrockError):
-    """Exception for Bedrock request timeout."""
+    """Exception for timeout errors."""
     pass
 
 
-class BedrockAuthError(BedrockError):
-    """Exception for Bedrock authentication/authorization errors."""
-    pass
-
-
-class BedrockModelError(BedrockError):
-    """Exception for Bedrock model-specific errors."""
+class BedrockServiceError(BedrockError):
+    """Exception for Bedrock service errors."""
     pass
 
 
 class BedrockValidationError(BedrockError):
-    """Exception for Bedrock request validation errors."""
+    """Exception for validation errors."""
+    pass
+
+
+class BedrockAccessDeniedError(BedrockError):
+    """Exception for access denied errors."""
     pass

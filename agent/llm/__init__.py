@@ -5,10 +5,9 @@ from .exceptions import (
     BedrockError,
     BedrockRateLimitError,
     BedrockTimeoutError,
-    BedrockAuthError,
-    BedrockModelError,
+    BedrockServiceError,
     BedrockValidationError,
-    LLMError,
+    BedrockAccessDeniedError,
 )
 from .schemas import (
     get_filesystem_tools_schema,
@@ -16,13 +15,11 @@ from .schemas import (
     get_command_tools_schema,
     get_all_tool_schemas,
     get_system_prompt_with_tools,
-    validate_tool_call,
     get_tool_schema_by_name,
 )
 from .tool_calling import (
-    ToolCallManager,
-    create_tool_error_message,
-    create_tool_success_message,
+    validate_tool_call,
+    execute_tool_call,
 )
 
 __all__ = [
@@ -30,10 +27,9 @@ __all__ = [
     "BedrockError",
     "BedrockRateLimitError", 
     "BedrockTimeoutError",
-    "BedrockAuthError",
-    "BedrockModelError",
+    "BedrockServiceError",
     "BedrockValidationError",
-    "LLMError",
+    "BedrockAccessDeniedError",
     "get_filesystem_tools_schema",
     "get_git_tools_schema", 
     "get_command_tools_schema",
@@ -41,7 +37,5 @@ __all__ = [
     "get_system_prompt_with_tools",
     "validate_tool_call",
     "get_tool_schema_by_name",
-    "ToolCallManager",
-    "create_tool_error_message",
-    "create_tool_success_message",
+    "execute_tool_call",
 ]
