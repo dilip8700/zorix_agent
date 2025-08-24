@@ -5,7 +5,11 @@ import time
 from typing import Callable
 
 from fastapi import FastAPI, Request, Response
-from fastapi.middleware.base import BaseHTTPMiddleware
+try:
+    from fastapi.middleware.base import BaseHTTPMiddleware
+except ImportError:
+    # For newer FastAPI versions
+    from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
 

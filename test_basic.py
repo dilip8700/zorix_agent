@@ -14,7 +14,8 @@ def test_config():
     
     print("Testing configuration...")
     settings = get_settings()
-    assert settings.app_port == 8123
+    # Updated to match CENTRAL_CONFIG.py values
+    assert settings.app_port == 8002
     assert settings.bedrock_region == "us-east-1"
     
     validate_startup_config()
