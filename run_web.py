@@ -29,16 +29,24 @@ logger = logging.getLogger(__name__)
 def main():
     """Main entry point for the web application."""
     
+    # Import CENTRAL configuration
+    try:
+        from CENTRAL_CONFIG import SERVER_HOST, SERVER_PORT, BASE_URL, API_DOCS_URL, CHAT_URL
+        host = SERVER_HOST
+        port = SERVER_PORT
+    except ImportError:
+        # Fallback to agent config
+        from agent.config import get_settings
+        settings = get_settings()
+        host = settings.host
+        port = settings.app_port
+    
     # Create FastAPI app
     app = create_app()
     
-    # Configuration
-    host = "127.0.0.1"
-    port = 8000
-    
     logger.info(f"Starting Zorix Agent Web Interface on http://{host}:{port}")
-    logger.info("API Documentation available at http://127.0.0.1:8000/docs")
-    logger.info("Web Interface available at http://127.0.0.1:8000/static/index.html")
+    logger.info(f"API Documentation available at http://{host}:{port}/docs")
+    logger.info(f"Web Interface available at http://{host}:{port}/static/index.html")
     
     # Run the server
     uvicorn.run(

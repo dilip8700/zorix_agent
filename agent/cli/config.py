@@ -45,15 +45,37 @@ class CLIConfig:
     
     def get_default_config(self) -> Dict:
         """Get default configuration."""
+        # Import CENTRAL configuration for API URL
+        try:
+            from CENTRAL_CONFIG import BASE_URL, MAX_SEARCH_RESULTS, POLL_INTERVAL_SECONDS, REQUEST_TIMEOUT_SECONDS
+            api_url = BASE_URL
+            max_results = MAX_SEARCH_RESULTS
+            poll_interval = POLL_INTERVAL_SECONDS
+            timeout = REQUEST_TIMEOUT_SECONDS
+        except ImportError:
+            # Fallback to agent config
+            try:
+                from agent.config import get_settings
+                settings = get_settings()
+                api_url = f"http://{settings.host}:{settings.app_port}"
+                max_results = 10
+                poll_interval = 2
+                timeout = 30
+            except ImportError:
+                api_url = "http://127.0.0.1:8001"
+                max_results = 10
+                poll_interval = 2
+                timeout = 30
+        
         return {
-            "api_url": "http://127.0.0.1:8000",
+            "api_url": api_url,
             "output_format": "rich",
             "log_level": "INFO",
             "auto_approve_low_risk": False,
             "default_dry_run": False,
-            "max_search_results": 10,
-            "poll_interval": 2,
-            "request_timeout": 30
+            "max_search_results": max_results,
+            "poll_interval": poll_interval,
+            "request_timeout": timeout
         }
     
     def get(self, key: str, default=None):

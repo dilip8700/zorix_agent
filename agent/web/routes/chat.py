@@ -9,7 +9,7 @@ from uuid import uuid4
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from agent.web.api import get_app_state
+# Removed circular import - will be injected at runtime
 from agent.web.models import (
     ChatMessage,
     ChatRequest,

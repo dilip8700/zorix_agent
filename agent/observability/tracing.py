@@ -7,10 +7,30 @@ from typing import Any, Dict, Optional
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
-from opentelemetry.instrumentation.boto3sqs import Boto3SQSInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+# Optional instrumentation imports - will be imported if available
+try:
+    from opentelemetry.instrumentation.requests import RequestsInstrumentor
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+
+try:
+    from opentelemetry.instrumentation.urllib3 import URLLib3Instrumentor
+    URLLIB3_AVAILABLE = True
+except ImportError:
+    URLLIB3_AVAILABLE = False
+
+try:
+    from opentelemetry.instrumentation.boto3sqs import Boto3SQSInstrumentor
+    BOTO3SQS_AVAILABLE = True
+except ImportError:
+    BOTO3SQS_AVAILABLE = False
+
+try:
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
